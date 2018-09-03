@@ -1,0 +1,48 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+    <id>distribution</id>
+
+    <formats>
+        <format>jar</format>
+    </formats>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <fileSets>
+        <!--<fileSet>-->
+
+            <!--<includes>-->
+                <!--<include>src/**</include>-->
+            <!--</includes>-->
+            <!--<fileMode>0755</fileMode>-->
+
+            <!--<directory>${project.build.outputDirectory}</directory>-->
+            <!--<outputDirectory>/</outputDirectory>-->
+        <!--</fileSet>-->
+
+        <fileSet>
+            <directory>${project.basedir}\src\main\resources</directory>
+            <outputDirectory>\resources</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}\src\main\java\</directory>
+            <outputDirectory>\</outputDirectory>
+        </fileSet>
+
+    </fileSets>
+
+    <dependencySets>
+        <dependencySet>
+            <!--<unpack>true</unpack>-->
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>/lib</outputDirectory>
+            <!-- 将scope为runtime的依赖包打包到lib目录下。 -->
+            <scope>runtime</scope>
+            <excludes>
+                <exclude>*glassfish*:*</exclude>
+                <exclude>org.fusesource.jansi:jansi</exclude>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+</assembly>

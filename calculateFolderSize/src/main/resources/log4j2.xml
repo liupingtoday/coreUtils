@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- status="OFF"，可以去掉，它的含义为是否记录log4j2本身的event信息，默认是OFF -->
+<Configuration status="WARN">
+    <!-- 定义下面的引用名 -->
+    <Properties>
+        <Property name="log_path">/logs/anchor/</Property>
+        <property name="log_pattern">%d{yyyy-MM-dd HH:mm:ss z} %t %-5level %class{36} %L %M - %msg%xEx%n</property>
+        <property name="rolling_debug_file_name">${log_path}/%d{yyyy-MM-dd}-%i.debug_log.gz</property>
+        <property name="rolling_info_file_name">${log_path}/%d{yyyy-MM-dd}-%i.info_log.gz</property>
+        <property name="rolling_warn_file_name">${log_path}/%d{yyyy-MM-dd}-%i.warn_log.gz</property>
+        <property name="rolling_error_file_name">${log_path}/%d{yyyy-MM-dd}-%i.error_log.gz</property>
+
+        <property name="every_file_size">10M</property><!-- 日志切割的最小单位 -->
+        <property name="output_log_level">info</property><!-- 日志输出最低级别 -->
+
+    </Properties>
+
+    <!--先定义所有的appender-->
+    <appenders>
+        <!--这个输出控制台的配置-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!--输出日志的编码和格式，根据实际环境需要配置-->
+            <PatternLayout charset="UTF-8" pattern="${log_pattern}"/>
+        </Console>
+
+        <!-- 重要的是，如果有多个ThresholdFilter，那么Filters是必须的，同时在Filters中，首先要过滤不符合的日志级别，把不需要的首先DENY掉，然后再ACCEPT需要的日志级别，这个次序不能搞颠倒。  -->
+        <!--这个会打印出所有的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <!-- 按月生成归档日志，可以使用 filePattern="logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz" -->
+
+        <!--如果需要配置多个Rollingfile地址，还需要在root下添加appender-ref ref="RollingFile1"/> 只显示error级别的信息 -->
+        <RollingFile name="debug" fileName="${log_path}/debug.log"  filePattern="${rolling_debug_file_name}" immediateFlush="false" append="false">
+            <PatternLayout pattern="${log_pattern}" charset="UTF-8"/>
+
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+                <TimeBasedTriggeringPolicy interval="10" modulate="true"/>
+            </Policies>
+            <!--自动删除超过120天的日志压缩文件-->
+            <DefaultRolloverStrategy>
+                <Delete basePath="${log_path}" maxDepth="2">
+                    <IfFileName glob="*/*.log.gz"/>
+                    <IfLastModified age="2d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+
+
+            <!--<SizeBasedTriggeringPolicy size="${every_file_size}"/>-->
+            <Filters>
+                <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+                <ThresholdFilter level="info" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+        <RollingFile name="info" fileName="${log_path}/info.log"  filePattern="${rolling_info_file_name}" immediateFlush="false" append="false">
+            <PatternLayout pattern="${log_pattern}" charset="UTF-8"/>
+
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+                <TimeBasedTriggeringPolicy interval="10" modulate="true"/>
+            </Policies>
+            <!--自动删除超过120天的日志压缩文件-->
+            <DefaultRolloverStrategy>
+                <Delete basePath="${log_path}" maxDepth="2">
+                    <IfFileName glob="*/*.log.gz"/>
+                    <IfLastModified age="2d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+
+            <!--<SizeBasedTriggeringPolicy size="${every_file_size}"/>-->
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+        <RollingFile name="warn" fileName="${log_path}/warn.log"  filePattern="${rolling_warn_file_name}">
+            <PatternLayout pattern="${log_pattern}" charset="UTF-8"/>
+            <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+            <Filters>
+                <ThresholdFilter level="error" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+        <RollingFile name="error" fileName="${log_path}/error.log"  filePattern="${rolling_error_file_name}">
+            <PatternLayout pattern="${log_pattern}" charset="UTF-8"/>
+            <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+            <Filters>
+                <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+    </appenders>
+    <!-- appender配置 -->
+    <!--<Appenders>-->
+
+        <!--<RollingFile name="DailyRollingFile" fileName="${log_path}/zcrTest.log"-->
+                     <!--filePattern="${log_path}/zcrTest%d{yyyy-MM-dd}.log">-->
+            <!--<PatternLayout pattern="[%d][%t][%p][%c:%L] %m%n" />-->
+            <!--<TimeBasedTriggeringPolicy  interval="1"/>-->
+            <!--　　　　　　　<SizeBasedTriggeringPolicy size="10 MB" />-->
+
+        <!--</RollingFile>-->
+    <!--</Appenders>-->
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+        <!--　<Logger name="mylog" level="trace" additivity="false">-->
+        <!--　　　　　　<AppenderRef ref="DailyRollingFile" />-->
+        <!--　　　　</Logger>-->
+        <!--建立一个默认的root的logger，需要在root的level中指定输出的级别，-->
+        <!--<root level="${output_log_level}">-->
+            <!--<appender-ref ref="Console"/>-->
+            <!--<appender-ref ref="debug"/>-->
+            <!--<appender-ref ref="info"/>-->
+            <!--<appender-ref ref="warn"/>-->
+            <!--<appender-ref ref="error"/>-->
+        <!--</root>-->
+
+        <Root level="${output_log_level}">
+            <!--<appender-ref ref="Console"/>-->
+            <appender-ref ref="debug"/>
+            <appender-ref ref="info"/>
+            <appender-ref ref="warn"/>
+            <appender-ref ref="error"/>
+        </Root>
+    </loggers>
+
+</Configuration>
